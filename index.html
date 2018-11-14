@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta name="description" content="Xenon Boostrap Admin Panel" />
+	<meta name="author" content="" />
+
+	<title>心脏高清度电动力学分析系统</title>
+
+	<link rel="stylesheet" href="/assets/css/fonts/linecons/css/linecons.css">
+	<link rel="stylesheet" href="/assets/css/fonts/fontawesome/css/font-awesome.min.css">
+	<link rel="stylesheet" href="/assets/css/bootstrap.css">
+	<link rel="stylesheet" href="/assets/css/xenon-core.css">
+	<link rel="stylesheet" href="/assets/css/xenon-forms.css">
+	<link rel="stylesheet" href="/assets/css/xenon-components.css">
+	<link rel="stylesheet" href="/assets/css/xenon-skins.css">
+	<link rel="stylesheet" href="/assets/css/custom.css">
+	<link rel="stylesheet" type="text/css" href="/assets/css/component.css">
+	<script src="/assets/js/jquery-1.11.1.min.js"></script>
+	<script type="text/javascript" src="/assets/js/jquery.cookie.js"></script>
+
+	<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+	<!--[if lt IE 9] -->
+		<script src="/assets/js/html5shiv/3.7.2/html5shiv.min.js"></script>
+		<script src="/assets/js/respond/1.4.2/respond.min.js"></script>
+	<!--[endif]-->
+
+	<script src="http://pv.sohu.com/cityjson?ie=utf-8"></script>
+
+	<!--framework-->
+	<script type="text/javascript" src="Scripts/StationJSLib.js"></script>
+
+
+</head>
+
+<body class="page-body login-page login-light">
+<div class="container">
+			<div class="main">
+				<ul id="cbp-bislideshow" class="cbp-bislideshow">
+					<li><img src="/images/1.jpg" alt="image01"/></li>
+					<li><img src="/images/2.jpg" alt="image02"/></li>
+					<li><img src="/images/3.jpg" alt="image03"/></li>
+					<li><img src="/images/4.jpg" alt="image04"/></li>
+					<li><img src="/images/5.jpg" alt="image05"/></li>
+				</ul>
+				<div id="cbp-bicontrols" class="cbp-bicontrols">
+					<span class="cbp-biprev"></span>
+					<span class="cbp-bipause"></span>
+					<span class="cbp-binext"></span>
+                </div>
+			</div>
+		</div>
+
+	<div class="login-container">
+
+		<div class="row">
+  <div class="col-sm-3"></div>
+			<div class="col-sm-6">
+
+				<script type="text/javascript">
+
+                    var obj= new Array();
+
+                    //返回参数验证函数,验证相应的开发结果
+                    function passResult(results){
+                    	console.log(results);
+                        var fig = results[0].substring(0,6); 	//获取对应的返回头信息
+                        if(fig=="failed"){
+                            alert("登录失败："+results[0].substring(7)); //根据相应返回头信息进行相应的解释
+                        }
+                        else{	
+                            sessionStorage.setItem('userId',results[0]);
+                            sessionStorage.setItem('userToken',results[1]);
+                            sessionStorage.setItem('classification',results[2]);
+                            sessionStorage.setItem('loginName',results[3]);
+                            console.log(results[3]);
+                            getFromWS("Home/login/GetAllUserInfo.template","login_name="+results[3],obj,loginSystemManagePage);
+                        }
+                    }
+                     function loginSystemManagePage() {
+                    	console.log(obj);
+                    	if (obj[0] == "ok") {
+							location.href="/pages/home/person/systemManage.html";
+                    	}
+                    	else{
+                    		alert("登录超时");
+                    	}
+                    }
+					jQuery(document).ready(function($)
+					{
+						cbpBGSlideshow.init();
+						// Reveal Login form
+						setTimeout(function(){ $(".fade-in-effect").addClass('in'); }, 1);
+
+						//启动进行相应的检查
+                        if($.cookie('cookiesjqsavepwd')=="1")
+                        {
+                            $("#isSavaPasswd").attr("checked","checked");
+                            $("#username").attr("value", $.cookie('cookiesjqname'));
+                            $("#passwd").attr("value", $.cookie('cookiesjqpwd'));
+                        }
+
+						// Validation and Ajax action
+						$("form#login").validate({
+							rules: {
+								username: {
+									required: true
+								},
+								passwd: {
+									required: true
+								}
+							},
+							messages: {
+								username: {
+									required: '请输入你的用户名'
+								},
+								passwd: {
+									required: '请输入你的密码'
+								}
+							},
+							// Form Processing via AJAX
+							submitHandler: function(form)
+							{
+								show_loading_bar(70); // Fill progress bar to 70% (just a given value)
+                                var loginName = $(form).find('#username').val();//用户名
+                                var password = $(form).find('#passwd').val();//密码
+                                console.log(loginName,password);
+								//是否进行本地密码保存
+								if($(form).find('#isSavaPasswd')[0].checked)
+								{
+                                    $.cookie('cookiesjqname', loginName, { expires: 7 });
+                                    $.cookie('cookiesjqpwd', password, { expires: 7 });
+                                    $.cookie('cookiesjqsavepwd', 1, { expires: 7 });
+								}
+								else
+								{
+                                    $.removeCookie('cookiesjqname');
+                                    $.removeCookie('cookiesjqpwd');
+                                    $.removeCookie('cookiesjqsavepwd');
+								}
+								//计算补允用户名 						
+                                console.log(loginName,password);
+                                login(loginName,password,passResult);	//登录login
+							}
+						});
+						// Set Form focus
+						$("form#login .form-group:has(.form-control):first .form-control").focus();
+					});
+				</script>
+
+				<!-- Errors container -->
+				<div class="errors-container">
+
+				</div>
+
+				<!-- Add class "fade-in-effect" for login form effect -->
+				<form method="post" role="form" id="login" class="login-form fade-in-effect">
+
+					<div class="login-header" style="text-align: center;">
+						<p style="font-size: 16px;">心脏高清度电动力学分析系统</p>
+						<p style="font-size: 16px;">Cardiac HD Electrodynamic Analysis System</p>
+					</div>
+
+
+					<div class="form-group">
+						<label class="control-label" for="username">用户名</label>
+						<input type="text" class="form-control" name="username" id="username" autocomplete="off" />
+					</div>
+
+					<div class="form-group">
+						<label class="control-label" for="passwd">密码</label>
+						<input type="password" class="form-control" name="passwd" id="passwd" autocomplete="off" />
+					</div>
+
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="isSavaPasswd">保存密码
+						</label>
+					</div>
+
+					<div class="form-group">
+						<button type="submit" class="btn btn-primary  btn-block text-left">
+							<i class="fa-lock"></i>
+							登录
+						</button>
+					</div>
+
+					<div style="float:none;margin-left: 75px" >
+						<a class="btn btn-primary btn-icon btn-icon-standalone" style="padding-left:0;" onclick="addUser()">
+                        <i class="fa-plus" style="font-size:17px"></i>
+                        <span>用户注册 </span>
+                        </a>
+
+                        <a class="btn btn-primary btn-icon btn-icon-standalone" style="padding-left:0;" onclick="addDoctor()">
+                        <i class="fa-plus" style="font-size:17px"></i>
+                        <span>医生注册</span>
+                        </a>
+					</div>
+
+					<script type="text/javascript">
+						//生成id
+                      var objNI = new Array();
+                      var newid;
+                      var processResultNI = function ()
+					  {
+						newid = objNI[0];
+					  }
+					  getFromWS("Home/person/getNewId.template", "", objNI, processResultNI);
+
+
+                        //医生注册
+                      function addDoctor() {
+						//生成id
+                        var processResultNI = function ()
+                        {
+                          newid = objNI[0];
+                        }
+                        getFromWS("Home/person/getNewId.template", "", objNI, processResultNI);
+
+                        //清空文本框
+                        $ (":file").val ("");
+                        $("#addDoctorId").val(newid);
+                        $("#addDoctorLoginName").val("");
+                        $("#addDoctorName").val("");
+                        $("#addDoctorHospital").val("");
+                        $("#addDoctorDepartment").val("");
+                        $("#addDoctorPosition ").val("");
+                        $("#addDoctorPasswd").val("");
+                        $("#checkDoctorPasswd").val("");
+                        $("#addDoctorPhone").val("");
+                        $("#addDoctorVerificationCode").val("");
+
+                        $('#addDoctor').modal('show');
+                      }
+
+                      //用户注册
+                      function addUser() {
+                        var processResultNI = function ()
+                        {
+                          newid = objNI[0];
+                        }
+                        getFromWS("Home/person/getNewId.template", "", objNI, processResultNI);
+
+                        $ (":file").val ("");
+                        $("#addUserId").val(newid);
+                        $("#addUserLoginName").val("");
+                        $("#addUserName").val("");
+                        $("#addDoctorPasswd").val("");
+                        $("#checkDoctorPasswd").val("");
+                        $("#addUserPhone").val("");
+
+                        $('#addUser').modal('show');
+                      }
+					</script>
+
+					<div class="login-footer">
+
+
+						<div class="info-links" style="font-size: 13px;">
+                            <a href="#">武汉大学开发</a>
+						</div>
+
+					</div>
+
+				</form>
+
+				<!-- External login -->
+
+
+			</div>
+
+                <div class="col-sm-3"></div>
+		</div>
+
+	</div>
+
+<div class="modal fade" id="addDoctor" aria-hidden="true" style="display: none">
+	<div class="modal-dialog" >
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				<h4 class="modal-title" style="color: black">医生注册</h4>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<div class="col-md-6">
+						<div class="form-group">
+							<label id="field-5" class="control-label" style="color: black">ID</label>
+							<input type="text" class="form-control" name='name' id="addDoctorId" disabled>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="form-group">
+							<label for="field-5" class="control-label" style="color: black">登录名</label>
+							<input AUTOCOMPLETE="OFF" type="text" class="form-control" name='name' id="addDoctorLoginName" placeholder="请输入注册用户名/手机号/邮箱" required>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6">
+						<div class="form-group">
+							<label for="field-5" class="control-label" style="color: black">姓名</label>
+							<input type="text" class="form-control" name='name' id="addDoctorName" required>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="form-group">
+							<label for="field-5" class="control-label" style="color: black">医院</label>
+							<input type="text" class="form-control" name='name' id="addDoctorHospital" required>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6">
+						<div class="form-group">
+							<label for="field-5" class="control-label" style="color: black">科室</label>
+							<input type="text" class="form-control" name='name' id="addDoctorDepartment" required>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="form-group">
+							<label for="field-5" class="control-label" style="color: black">职位</label>
+							<input type="text" class="form-control" name='name' id="addDoctorPosition" required>
+						</div>
+					</div>
+				</div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="field-5" class="control-label" style="color: black">手机号码</label>
+                            <input type="text" class="form-control" name='name' id="addDoctorPhone" required>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="field-5" class="control-label" style="color: black">验证码</label>
+                            <input type="text" class="form-control" name='name' id="addDoctorVerificationCode" required>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="field-5" class="control-label">sendVerificationCode</label>
+                            <button style="background-color: #0b6aff;color: white;" type="button" class="form-control" id="sendDoctorVerificationCode">获取验证码</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="field-5" class="control-label" style="color: black">登录密码</label>
+                            <input type="password" class="form-control" name='name' id="addDoctorPasswd" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="field-5" class="control-label" style="color: black">再次输入登录密码</label>
+                            <input type="password" class="form-control" name='name' id="checkDoctorPasswd" onblur="return checkDoctorPass()" required>
+                            <span id="errorPasswd" style="display:none;color: red">两次输入密码不一致</span>
+                        </div>
+                    </div>
+                </div>
+				<div class="row">
+					<div class="col-md-6">
+						<div class="form-group">
+							<label for="field-5" class="control-label" style="color: black">邀请码（选填）</label>
+							<input type="text"  class="form-control" name='name' id="addDoctorInviteId" placeholder="请输入邀请码" required>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-white" data-dismiss="modal">取消</button>
+					<button type="button" class="btn btn-info" id="addDoctorSave">确定</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div><!--医生注册-->
+
+<div class="modal fade" id="addUser" aria-hidden="true" style="display: none">
+	<div class="modal-dialog" >
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				<h4 class="modal-title" style="color: black">用户注册</h4>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<div class="col-md-6">
+						<div class="form-group">
+							<label id="field-6" class="control-label" style="color: black">ID</label>
+							<input type="text" class="form-control" name='name' id="addUserId" disabled>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="form-group">
+							<label for="field-6" class="control-label" style="color: black">登录名</label>
+							<input type="text" class="form-control" name='name' id="addUserLoginName" placeholder="请输入注册用户名/手机号/邮箱" required>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6">
+						<div class="form-group">
+							<label for="field-6" class="control-label" style="color: black">姓名</label>
+							<input type="text" class="form-control" name='name' id="addUserName" required>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6">
+						<div class="form-group">
+							<label for="field-6" class="control-label" style="color: black">手机号码</label>
+							<input type="text" class="form-control" name='name' id="addUserPhone" required>
+						</div>
+					</div>
+					<div class="col-md-3">
+						<div class="form-group">
+							<label for="field-6" class="control-label" style="color: black">验证码</label>
+							<input type="text" class="form-control" name='name' id="addUserVerificationCode" required>
+						</div>
+					</div>
+					<div class="col-md-3">
+						<div class="form-group">
+							<label for="field-5" class="control-label">sendVerificationCode</label>
+							<button style="background-color: #0b6aff;color: white;" type="button" class="form-control" id="sendUserVerificationCode">获取验证码</button>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6">
+						<div class="form-group">
+							<label for="field-6" class="control-label" style="color: black">登录密码</label>
+							<input type="password" class="form-control" name='name' id="addUserPasswd" required>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="form-group">
+							<label for="field-6" class="control-label" style="color: black">再次输入登录密码</label>
+							<input type="password" class="form-control" name='name' id="checkUserPasswd" required>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6">
+						<div class="form-group">
+							<label for="field-6" class="control-label" style="color: black">邀请码（选填）</label>
+							<input type="text"  class="form-control" name='name' id="addUserInviteId" placeholder="请输入邀请码" required>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-white" data-dismiss="modal">取消</button>
+					<button type="button" class="btn btn-info" id="addUserSave">确定</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div><!--用户注册-->
+
+<script type="text/javascript">
+  //注册医生
+  $('#addDoctorSave').on('click', function () {
+    var id = $("#addDoctorId").val();
+    var login_name = $("#addDoctorLoginName").val();
+    var name = $("#addDoctorName").val();
+    var hospital = $("#addDoctorHospital").val();
+    var department = $("#addDoctorDepartment").val();
+    var position = $("#addDoctorPosition").val();
+    var phone = $("#addDoctorPhone").val();
+    var passwd = $("#addDoctorPasswd").val();
+    var checkPasswd = $("#checkDoctorPasswd").val();
+    // var photo = addphotoId;
+    //检查信息填写是否完整
+    console.log(id + " " + login_name + " " + name + " " + passwd);
+    if (passwd == checkPasswd) {
+      if (login_name == "" || name == "" || hospital == "" || department == "" || position == "" || phone == "" ||
+          passwd == "" || checkPasswd == "") {
+        toastr.error("信息填写不完整", "添加用户失败！");
+        return;
+      }
+      var obj = new Array();
+      var processResult = function() {
+        if (obj[0] == "rpt") {
+          toastr.error("登录名重复", "注册医生失败！");
+          return;
+        }
+        else {
+          $('#addDoctor').modal('hide');
+          toastr.success("注册完成", "注册医生成功！");
+        }
+      }
+
+      var doctorData = "id=" + id + "$^@^$login_name=" + login_name + "$^@^$passwd=" + passwd + "$^@^$name=" + name +
+          "$^@^$hospital" + hospital + "$^@^$position" + position + "$^@^$department" + department + "$^@^$phone" +
+          phone;
+      console.log(doctorData);
+      getFromWS("Home/person/signUp/doctorSignUp.template", doctorData, obj, processResult);
+    }
+    else toastr.error("两次密码输入不一致")
+  });
+
+  //注册用户
+  $('#addUserSave').on('click', function () {
+    var id = $("#addUserId").val();
+    var login_name = $("#addUserLoginName").val();
+    var name = $("#addUserName").val();
+    var phone = $("#addUserPhone").val();
+    var passwd = $("#addUserPasswd").val();
+    var checkPasswd = $("#checkUserPasswd").val();
+    // var photo = addphotoId;
+    //检查信息填写是否完整
+    console.log(id+" "+login_name+" "+name+" "+passwd);
+    if (login_name == "" || name ==  "" || phone == "" || passwd == "" || checkPasswd == "") {
+      toastr.error("信息填写不完整", "添加用户失败！");
+      return;
+    }
+    var obj = new Array();
+    var processResult = function () {
+      if(obj[0]=="rpt")
+      {
+        toastr.error("登录名重复", "注册用户失败！");
+        return;
+      }
+      else
+      {
+        $('#addDoctor').modal('hide');
+        toastr.success("注册完成", "注册用户成功！");
+      }
+    }
+
+    var userData = "id=" + id + "$^@^$name=" + name + "$^@^$phone" + phone + "login_name=" + login_name +"$^@^$passwd=" + passwd;
+    console.log(userData);
+    getFromWS("Home/person/signUp/userSignUp.template",userData, obj, processResult);
+  });
+
+</script>
+
+
+
+	<!-- Bottom Scripts -->
+	<script src="/assets/js/bootstrap.min.js"></script>
+	<script src="/assets/js/TweenMax.min.js"></script>
+	<script src="/assets/js/resizeable.js"></script>
+	<script src="/assets/js/joinable.js"></script>
+	<script src="/assets/js/xenon-api.js"></script>
+	<script src="/assets/js/xenon-toggles.js"></script>
+	<script src="/assets/js/jquery-validate/jquery.validate.min.js"></script>
+	<script src="/assets/js/toastr/toastr.min.js"></script>
+
+
+	<!-- JavaScripts initializations and stuff -->
+	<script src="/assets/js/xenon-custom.js"></script>
+    <script src="/assets/js/modernizr.custom.js"></script>
+
+<script src="/assets/js/jquery.imagesloaded.min.js"></script>
+<script src="/assets/js/cbpBGSlideshow.min.js"></script>
+</body>
+</html>
